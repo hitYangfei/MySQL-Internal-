@@ -28,6 +28,7 @@ int main()
 <tr><td>内存地址</td><td>内容</td></tr>
 <tr><td>0x7fffffffd9e0</td><td>node1的地址{next = 0x7fffffffd9f0, a = 1}</td></tr>
 <tr><td>0x7fffffffd9f0</td><td>node2的地址{next = 0x0, a = 2}</td></tr>
+</table>
 
 所以这里p = 0x7fffffffd9e0,十分好理解。我的机器是64位机器所以sizeof(node) = 16,其中指针8,int 4,剩下的4个浪费掉。所以node1 node2之间刚好差两个字节，16位。此时node **q = (node **)p; 会将p原本指向一个16位的结构体struct node强制转化为一个指向struct node * 的8位的二维指针q的值是0x7fffffffd9e0,*q的值为0x7fffffffd9f0，为node2的地址，node.next的值。如果在声明node时候将next与a顺序调换，是得不到这个效果的。下面进入正题
 
