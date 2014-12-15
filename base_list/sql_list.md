@@ -44,7 +44,7 @@ first指向链表的第一个元素，*last指向最后一个元素，last指向
 
 <table>
 <tr><td>内存地址</td><td>内容</td></tr>
-<tr><td>0x601050</td><td>end_of_list的地址{next = 0x601050 &lt;end_of_list&gt;, info = 0x0},first、* last的值</td>></tr>
+<tr><td>0x601050</td><td>end_of_list的地址{next = 0x601050 &lt;end_of_list&gt;, info = 0x0},first、* last的值</td></tr>
 <tr><td>0x7fffffffd9f0</td><td>0x601050 ，last的值</td></tr>
 </table>
 
@@ -54,31 +54,29 @@ first指向链表的第一个元素，*last指向最后一个元素，last指向
 >申请一个节点next指向end_of_list, *last的值为0x601050所以first 的值也会更新为这个新申请的节点,
 >*last以及first被更新为0x602010,他们的next值为ox601050
 
->last= &(*last)->next;
->(*last)->next指向end_of_list值为0x601050
->&(*last)->next的值到底是什么呢？即哪一个地址存储的是0x601050这个值
+>last= &(* last)->next;
+>(* last)->next指向end_of_list值为0x601050
+>&(* last)->next的值到底是什么呢？即哪一个地址存储的是0x601050这个值
 
 >答案是0x602010
->与上面的解释一样，(list_node*)0x602010是first * last, (list_node **)0x602010是一个指向list_node*的指针，刚好这个地址的前八位为first->next
->即(*last)->next 0x601050 所以last=0x602010此时的*last = 0x601050 即指向了最后一个元素
+>与上面的解释一样，(list_node * )0x602010是first, * last, (list_node **)0x602010是一个指向list_node * 的指针，刚好这个地址的前八位为first->next
+>即( * last)->next 0x601050 所以last=0x602010此时的 * last = 0x601050 即指向了最后一个元素
 
-0x601050       | end_of_list的地址{next = 0x601050 &ltend_of_list&gt, info = 0x0}
-
-0x602010       | {next = 0x601050 &ltend_of_list&gt, info = &a}, first指向这个
-
-0x602010       | last等于这个地址值，*last = 0x601050 所以要清楚对于 *last的修改就是读first->next的修改，继续往下看
-
+<table>
+<tr><td>内存地址</td><td>内容</td></tr>
+<tr><td>0x601050</td><td>end_of_list的地址{next = 0x601050 &ltend_of_list&gt, info = 0x0}</td></tr>
+<tr><td>0x602010</td><td>{next = 0x601050 &ltend_of_list&gt, info = &a}, first指向这个</td></tr>
+<tr><td>0x602010</td><td>last等于这个地址值，*last = 0x601050 所以要清楚对于 *last的修改就是读first->next的修改</td></tr>
+</table>
 
 
 ### push_back(b)之后
-
-0x601050       | end_of_list的地址{next = 0x601050 &ltend_of_list&gt, info = 0x0}
-
-0x602010       | {next = 0x602030 , info = &a}, first指向这个
-
-0x602030       | {next = 0x601050 &ltend_of_list&gt, info = &b} 
-
-0x602030       | last等于这个地址值，* last = 0x601050 所以要清楚对于* last的修改就是读first->next的修改，继续往下看
+<table>
+<tr><td>内存地址</td><td>内容</td></tr>
+<tr><td>0x601050</td><td>end_of_list的地址{next = 0x601050 &ltend_of_list&gt, info = 0x0}</td></tr>
+<tr><td>0x602010</td><td>{next = 0x602030 , info = &a}, first指向这个</td></tr>
+<tr><td>0x602030</td><td>{next = 0x601050 &ltend_of_list&gt, info = &b} </td></tr>
+<tr><td>0x602030</td><td>last等于这个地址值，* last = 0x601050 所以要清楚对于* last的修改就是读first->next的修改</td></tr>
 
 接下来的过程重复这个过程完成链表的建立。
 
