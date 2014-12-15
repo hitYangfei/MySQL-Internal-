@@ -48,7 +48,7 @@ first指向链表的第一个元素，*last指向最后一个元素，last指向
 
 ### push_back(a)之后的执行
 
-(*last)=new list_node(info, &end_of_list) 申请一个节点next指向end_of_list
+(&lowast;last)=new list_node(info, &end_of_list) 申请一个节点next指向end_of_list
 *last的值为0x601050所以first 的值也会更新为这个新申请的节点
 *last以及first被更新为0x602010,他们的next值为ox601050
 last= &(*last)->next;
