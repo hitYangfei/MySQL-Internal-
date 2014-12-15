@@ -40,15 +40,15 @@ MySQL的base_list是一个单向链表的基类，很多的链表都复用这个
 
 first指向链表的第一个元素，*last指向最后一个元素，last指向last->next待添加到链表末尾的那个元素,调试一下在我的机器上运行如下:
 
-初始化
+### 初始化
 
 0x601050       | end_of_list的地址{next = 0x601050 &lt;end_of_list&gt;, info = 0x0},first * last的值
 
 0x7fffffffd9f0 | 0x601050 ，last的值
 
-push_back(a)之后的执行
+### push_back(a)之后的执行
 
-"(*last)=new list_node(info, &end_of_list) 申请一个节点next指向end_of_list
+(*last)=new list_node(info, &end_of_list) 申请一个节点next指向end_of_list
 *last的值为0x601050所以first 的值也会更新为这个新申请的节点
 *last以及first被更新为0x602010,他们的next值为ox601050
 last= &(*last)->next;
@@ -56,23 +56,23 @@ last= &(*last)->next;
 &(*last)->next的值到底是什么呢？即哪一个地址存储的是0x601050这个值
 答案是0x602010
 与上面的解释一样，(list_node*)0x602010是first * last, (list_node **)0x602010是一个指向list_node*的指针，刚好这个地址的前八位为first->next
-即(*last)->next 0x601050 所以last=0x602010此时的*last = 0x601050 即指向了最后一个元素"
+即(*last)->next 0x601050 所以last=0x602010此时的*last = 0x601050 即指向了最后一个元素
 
-0x601050       | end_of_list的地址{next = 0x601050 <end_of_list>, info = 0x0}
+0x601050       | end_of_list的地址{next = 0x601050 &ltend_of_list&gt, info = 0x0}
 
-0x602010       | {next = 0x601050 <end_of_list>, info = &a}, first指向这个
+0x602010       | {next = 0x601050 &ltend_of_list&gt, info = &a}, first指向这个
 
 0x602010       | last等于这个地址值，*last = 0x601050 所以要清楚对于 *last的修改就是读first->next的修改，继续往下看
 
 
 
-push_back(b)之后
+### push_back(b)之后
 
-0x601050       | end_of_list的地址{next = 0x601050 <end_of_list>, info = 0x0}
+0x601050       | end_of_list的地址{next = 0x601050 &ltend_of_list&gt, info = 0x0}
 
 0x602010       | {next = 0x602030 , info = &a}, first指向这个
 
-0x602030       | {next = 0x601050 <end_of_list>, info = &b} 
+0x602030       | {next = 0x601050 &ltend_of_list&gt, info = &b} 
 
 0x602030       | last等于这个地址值，* last = 0x601050 所以要清楚对于* last的修改就是读first->next的修改，继续往下看
 
