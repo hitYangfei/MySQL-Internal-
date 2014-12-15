@@ -24,10 +24,10 @@ int main()
 ```
 
 调试一下在我的机器上运行如下:
-
-0x7fffffffd9e0 | node1的地址{next = 0x7fffffffd9f0, a = 1}
-
-0x7fffffffd9f0 | node2的地址{next = 0x0, a = 2}
+<table>
+<tr><td>内存地址</td><td>内容</td></tr>
+<tr><td>0x7fffffffd9e0</td><td>node1的地址{next = 0x7fffffffd9f0, a = 1}</td></tr>
+<tr><td>0x7fffffffd9f0</td><td>node2的地址{next = 0x0, a = 2}</td></tr>
 
 所以这里p = 0x7fffffffd9e0,十分好理解。我的机器是64位机器所以sizeof(node) = 16,其中指针8,int 4,剩下的4个浪费掉。所以node1 node2之间刚好差两个字节，16位。此时node **q = (node **)p; 会将p原本指向一个16位的结构体struct node强制转化为一个指向struct node * 的8位的二维指针q的值是0x7fffffffd9e0,*q的值为0x7fffffffd9f0，为node2的地址，node.next的值。如果在声明node时候将next与a顺序调换，是得不到这个效果的。下面进入正题
 
@@ -36,7 +36,53 @@ int main()
 MySQL的base_list是一个单向链表的基类，很多的链表都复用这个类。这个类
 下面简化一下这个类的首先来分析push_back的实现，代码的深度让人叹为观止
 
-代码见singlelist.cc
+```cpp
+#include<stdio.h>
+struct list_node 
+{
+  list_node *next;
+  void *info;
+  list_node(void *info_par,list_node *next_par)
+    :next(next_par),info(info_par)
+  {}
+  list_node()         /* For end_of_list */
+  {
+    info= 0;
+    next= this;
+  }
+};
+list_node end_of_list;
+
+class base_list
+{
+public:
+  list_node *first,**last;
+  unsigned int elements;
+  void empty() { elements=0; first= &end_of_list; last=&first;}
+  base_list() { empty(); }
+  bool push_back(void *info)
+  {
+    if (((*last)=new list_node(info, &end_of_list)))
+    {
+      last= &(*last)->next;
+      elements++;
+      return 0;
+    }
+    return 1;
+  }
+
+};
+int main()
+{
+  int a=1,b=2,c=3,d=4;
+  base_list list;
+  list.push_back((void*)(&a));
+  list.push_back((void*)(&b));
+  list.push_back((void*)(&c));
+  list.push_back((void*)(&d));
+  return 0;
+}
+```
 
 first指向链表的第一个元素，*last指向最后一个元素，last指向last->next待添加到链表末尾的那个元素,调试一下在我的机器上运行如下:
 
@@ -71,6 +117,7 @@ first指向链表的第一个元素，*last指向最后一个元素，last指向
 
 
 ### push_back(b)之后
+
 <table>
 <tr><td>内存地址</td><td>内容</td></tr>
 <tr><td>0x601050</td><td>end_of_list的地址{next = 0x601050 &ltend_of_list&gt, info = 0x0}</td></tr>
