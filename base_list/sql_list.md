@@ -5,22 +5,22 @@
 
 ```cpp
 #include<stdio.h>
-   
+
 struct node{
   struct node *next;
   int a;
-}; 
+};
 int main()
-{  
+{
   node node1,node2;
   node1.a=1;
   node2.a=2;
   node2.next=NULL;
-  node1.next=&node2;                                                                                                                                  
+  node1.next=&node2;
   node *p = &node1;
   node **q = (node **)p;
   return 1;
-} 
+}
 ```
 
 调试一下在我的机器上运行如下:
@@ -39,7 +39,7 @@ MySQL的base_list是一个单向链表的基类，很多的链表都复用这个
 
 ```cpp
 #include<stdio.h>
-struct list_node 
+struct list_node
 {
   list_node *next;
   void *info;
@@ -97,7 +97,7 @@ first指向链表的第一个元素，*last指向最后一个元素，last指向
 
 ### push_back(a)之后的执行
 
->(*last)=new list_node(info, &end_of_list) 
+>(*last)=new list_node(info, &end_of_list)
 >申请一个节点next指向end_of_list, *last的值为0x601050所以first 的值也会更新为这个新申请的节点,
 >*last以及first被更新为0x602010,他们的next值为ox601050
 
@@ -125,6 +125,6 @@ first指向链表的第一个元素，*last指向最后一个元素，last指向
 <tr><td>0x602010</td><td>{next = 0x602030 , info = &a}, first指向这个</td></tr>
 <tr><td>0x602030</td><td>{next = 0x601050 &ltend_of_list&gt, info = &b} </td></tr>
 <tr><td>0x602030</td><td>last等于这个地址值，* last = 0x601050 所以要清楚对于* last的修改就是读first->next的修改</td></tr>
-
+</table>
 接下来的过程重复这个过程完成链表的建立。
 
