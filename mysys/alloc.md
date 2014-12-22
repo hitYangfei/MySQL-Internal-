@@ -127,6 +127,8 @@ void *alloc_root(MEM_ROOT *mem_root, size_t length)
     mem_root->used= next;   
     mem_root->first_block_usage= 0;
   }  
+  
+  return (void*)point;
 }
 
 ```
