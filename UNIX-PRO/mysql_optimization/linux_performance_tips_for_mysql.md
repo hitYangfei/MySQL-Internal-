@@ -26,7 +26,7 @@
 
 1. Swappiness
 
-># echo 0 &gt;/proc/sys/vm/swappiness
+>echo 0&gt;/proc/sys/vm/swappiness
 >add "vm.swppiness=0" to /etc/sysctl.conf
 
 vm.swappiness 的值表示系统对于 Swap 分区的使用策略。等于0表示最大限度的使用物理内存，然后才是 Swap 空间；等于100表示表示积极的使用 Swap 空间， 并且把内存上的数据及时的搬运到 Swap 空间上。MySQL 优化建议指定为0，最大使用内存。
@@ -40,7 +40,7 @@ vm.swappiness 的值表示系统对于 Swap 分区的使用策略。等于0表�
 NUMA(None Uniform Memory Architecture)是对UMA而言的，UMA就是传统SMP架构的多核处理其的内存访问模式，即所有内存作为一个整体供所有处理器进行使用，而NUMA则将内存进行分块，分配给具体的处理器进行使用，这样可以提高内存访问速度，但是不足就是应用需要大量内存时，内存不足的情况。通过上面的设置可以将内存模式变为round robin方式，即当内存不足时将会使用其他处理器的内存。
 
 
-更多关于NUMA以及SWAP的讨论和应用可以参考7，这是一个twitter的MySQL分支版本关于NUMA以及SWAP方面的修改以及改进。分支版本托管在github上[https://github.com/twitter/mysql][https://github.com/twitter/mysql]。
+更多关于NUMA以及SWAP的讨论和应用可以参考7，这是一个twitter的MySQL分支版本关于NUMA以及SWAP方面的修改以及改进。分支版本托管在github上 https://github.com/twitter/mysql。
 
 ###CPU
 
