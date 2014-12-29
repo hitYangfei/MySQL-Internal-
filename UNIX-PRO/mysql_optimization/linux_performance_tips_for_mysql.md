@@ -20,14 +20,18 @@
 
 2. IO调用采用noop 或者 deadline方式
 
+>  echo deadline >/sys/block/sda/queue/scheduler
+
+>  add "elevator=deadline" to grub.conf
 参考2是percona给出的一份关于IO调用的不同策略的TPCC测试结果。
 
 ###内存
 
 1. Swappiness
 
->echo 0&gt;/proc/sys/vm/swappiness
->add "vm.swppiness=0" to /etc/sysctl.conf
+>  echo 0&gt;/proc/sys/vm/swappiness
+
+>  add "vm.swppiness=0" to /etc/sysctl.conf
 
 vm.swappiness 的值表示系统对于 Swap 分区的使用策略。等于0表示最大限度的使用物理内存，然后才是 Swap 空间；等于100表示表示积极的使用 Swap 空间， 并且把内存上的数据及时的搬运到 Swap 空间上。MySQL 优化建议指定为0，最大使用内存。
 
