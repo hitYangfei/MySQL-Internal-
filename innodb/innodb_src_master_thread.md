@@ -56,7 +56,7 @@ innodb_additional_mem_pool_size
 
 ```cpp
 static PSI_thread_info  all_innodb_threads[] = {
-  {&trx_rollback_clean_thread_key, "trx_rollback_clean_thread", 0},                                                                            
+  {&trx_rollback_clean_thread_key, "trx_rollback_clean_thread", 0},
   {&io_handler_thread_key, "io_handler_thread", 0},
   {&srv_lock_timeout_thread_key, "srv_lock_timeout_thread", 0},
   {&srv_error_monitor_thread_key, "srv_error_monitor_thread", 0},
@@ -65,7 +65,7 @@ static PSI_thread_info  all_innodb_threads[] = {
   {&srv_purge_thread_key, "srv_purge_thread", 0},
   {&buf_page_cleaner_thread_key, "page_cleaner_thread", 0},
   {&recv_writer_thread_key, "recv_writer_thread", 0}
-}; 
+};
 ```
 
 调用innodb_init()-->inline_mysql_thread_register()
@@ -85,11 +85,11 @@ src_master_thread
 
 
 ```cpp
-loop:       
+loop:
   // innodb 的可调参数 innodb_force_recovery
   if (srv_force_recovery >= SRV_FORCE_NO_BACKGROUND) {
     goto suspend_thread;
-  }         
+  }
   while (srv_shutdown_state == SRV_SHUTDOWN_NONE) {
     srv_master_sleep();   // sleep 1 s
     MONITOR_INC(MONITOR_MASTER_THREAD_SLEEP);
@@ -98,8 +98,8 @@ loop:
       srv_master_do_active_tasks();
     } else {
       srv_master_do_idle_tasks();
-    }       
-  }         
+    }
+  }
   while (srv_master_do_shutdown_tasks(&last_print_time)) {
     /* Shouldn't loop here in case of very fast shutdown */
     ut_ad(srv_fast_shutdown < 2);
@@ -111,7 +111,7 @@ suspend_thread:
   os_event_wait(slot->event);
   if (srv_shutdown_state == SRV_SHUTDOWN_EXIT_THREADS) {
     os_thread_exit(NULL);
-  } 
+  }
   goto loop;
 
 ```
@@ -121,12 +121,95 @@ slot的声明为rv_slot_t* slot，innodb内部保持着一个thread table，每�
 是可以看到在loop的过程中，有一个while循环每1s一次，要么是activity执行srv_master_do_active_tasks要么没有新任务执行srv_master_do_idle_tasks,走哪一个分支由函数srv_check_activity()决定
 
 `cpp
-UNIV_INTERN            
+UNIV_INTERN
 ibool
 srv_check_activity(ulint old_activity_count) /*!< in: old activity count */
-{ 
+{
   return(srv_sys->activity_count != old_activity_count);
-} 
+}
 ```
 
-这个检查函数是比较之前的activity_count与现在的activity_count是否一致，即可以简单的理解为1s之前和现在的进行比较。
+这个检查函数是比较之前的activity_count与现在的activity_count是否一致，即可以简单的理解为1s之前和现在的进行比较。srv_sys->activity_count的值通过函数srv_inc_activity_count(void)进行自增操作，只通过这个函数进行修改。代码中的active还是idle状态是针对mysql server而言的，有query request就是activice否则就是idle。
+
+#### srv_master_do_idel_tasks
+
+```cpp
+static
+void
+srv_master_do_idle_tasks(void)
+/*==========================*/
+{
+  ++srv_main_idle_loops;
+
+  /* ALTER TABLE in MySQL requires on Unix that the table handler
+  can drop tables lazily after there no longer are SELECT
+  queries to them. */
+  srv_main_thread_op_info = "doing background drop tables";
+  row_drop_tables_for_mysql_in_background();
+  if (srv_shutdown_state > 0) {
+    return;
+  }
+  /* make sure that there is enough reusable space in the redo
+  log files */
+  srv_main_thread_op_info = "checking free log space";
+  log_free_check();
+
+  /* Do an ibuf merge */
+  srv_main_thread_op_info = "doing insert buffer merge";
+  ibuf_contract_in_background(0, TRUE);
+  if (srv_shutdown_state > 0) {
+    return;
+  }
+  srv_main_thread_op_info = "enforcing dict cache limit";
+  srv_master_evict_from_table_cache(100);
+  /* Flush logs if needed */
+  srv_sync_log_buffer_in_background();
+  if (srv_shutdown_state > 0) {
+    return;
+  /* Make a new checkpoint */
+  srv_main_thread_op_info = "making checkpoint";
+  log_checkpoint(TRUE, FALSE);
+}
+```
+
+从注释中可以看到这个idel task是做什么的。这个函数会做6件事
+1. drop table 
+2. check log space 
+3. doing insert buffer merge
+4. enforcing dict cache limit
+5. flush logs if needed
+6. make a new check point
+
+#### srv_master_do_active_tasks
+
+这个active的过程比idle过程多了一些人物，这个函数做如下事情
+1. drop table
+2. check log space
+3. doing insert buffer merge
+4. flush logs if needed
+5. 每SRV_MASTER_MEM_VALIDATE_INTERVAL秒做一次内存检测
+6. 每SRV_MASTER_DICT_LRU_INTERVAL秒做一次enforcing dict cache limit
+7. 每SRV_MASTER_CHECKPOINT_INTERVAL秒做一次Make a new checkpoint
+
+这些宏定义如下:
+```cpp
+# define  SRV_MASTER_CHECKPOINT_INTERVAL    (7)                                                                                                       
+# define  SRV_MASTER_PURGE_INTERVAL   (10)
+#ifdef MEM_PERIODIC_CHECK
+# define  SRV_MASTER_MEM_VALIDATE_INTERVAL  (13)
+#endif /* MEM_PERIODIC_CHECK */
+# define  SRV_MASTER_DICT_LRU_INTERVAL    (47)
+
+```
+为什么定义为这样的数，这四个数是互质的，这样做的目的是为了平衡负载。SRV_MASTER_PURGE_INTERVAL这个宏没有在任何定义看到被使用，应该是之前用过的宏被弃用了，还有待于考证。源码注释如下
+```cpp
+/* Interval in seconds at which various tasks are performed by the
+master thread when server is active. In order to balance the workload,
+we should try to keep intervals such that they are not multiple of
+each other. For example, if we have intervals for various tasks
+defined as 5, 10, 15, 60 then all tasks will be performed when
+current_time % 60 == 0 and no tasks will be performed when
+current_time % 5 != 0. */
+```
+
+
