@@ -193,7 +193,7 @@ srv_master_do_idle_tasks(void)
 
 这些宏定义如下:
 ```cpp
-# define  SRV_MASTER_CHECKPOINT_INTERVAL    (7)                                                                                                       
+# define  SRV_MASTER_CHECKPOINT_INTERVAL    (7)
 # define  SRV_MASTER_PURGE_INTERVAL   (10)
 #ifdef MEM_PERIODIC_CHECK
 # define  SRV_MASTER_MEM_VALIDATE_INTERVAL  (13)

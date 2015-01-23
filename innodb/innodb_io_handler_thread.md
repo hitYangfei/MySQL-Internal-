@@ -343,3 +343,4 @@ struct ut_list_node {
 #define UT_LIST_NODE_T(TYPE)  ut_list_node<TYPE>
 ```
 
+fil/fil0fil.cc 这个文件是innodb tablespace and log cache的实现，这里有三个重要的数据结构:fil_system_t这是全局的文件系统包含所有的space，fil_space_t这就一个tablespace或者一个log,；fil_node_t这是一个具体的IO结构，每一个fil_node_t中存储着一个文件描述符
