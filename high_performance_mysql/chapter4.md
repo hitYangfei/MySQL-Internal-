@@ -51,3 +51,20 @@ MySQL把BIT当作字符串类型而不是数字类型，结果是一个包含二
 >SELECT a, a + 0 FROM bittest;
 
 >得到的结果为9, 57
+
+### 计数器趣例
+
+### ALTER TABLE 修改一个列的默认值
+
+>ALTER TABLE film MODIFY COLUMN aaa TINYINT(3) NOT NULL DEFAULT 5;
+
+上面这种方法很慢，会新建一个临时表进行全表数据拷贝。
+
+>ALTER TBLE film ALTER COLUMN aaa SET DEFAULT 5;
+
+上面这个语句直接修改\.frm文件而不是修改表数据，所以这个方法会很快。因为列的默认值存储在\.frm文件中。
+
+
+### 总结
+
+MYSQL喜欢简单。。
