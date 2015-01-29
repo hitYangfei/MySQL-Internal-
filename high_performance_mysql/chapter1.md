@@ -20,9 +20,7 @@ mysql支持4个SQL标准的隔离级别
 
 >set global tx_isolation=1; //READ COMMITED
 
-### mysql 存储引擎
-
-#### mysiam
+### mysiam 存储引擎
 
 mysiam存储引擎将数据文件以及索引文件分开存储，表锁级别，可以进行检查以及修复，支持索引以及全文检索，延迟更新索引键
 
@@ -47,7 +45,9 @@ mysiam存储引擎将数据文件以及索引文件分开存储，表锁级别�
   建立一张新表，然后使用insert select进行数据转换，如果数据量大可以一点一点的进行。
 
   >CREATE TABLE innodb_table LIKE myisam_table;
+
   >ALTER TABLE innodb_table ENGINE=InnoDB;
+
   >INSERT INTO innodb_table SELECT * FROM myisam_table ;
 
 Percona Toolkit 提供了 pt-online-schema-change\(给予Facebook的在线变更shcema技术\)的工具,
