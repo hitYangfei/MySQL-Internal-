@@ -74,6 +74,12 @@ InnoDB row operations
  3.innodb_rows_updated
  4.innodb_rows_deleted
 
+Mysiam
+ 1.key_buffer_size 指定索引缓冲区的大小，它决定索引处理的速度，尤其是索引读的速度。通过检查状态值Key_read_requests和Key_reads，可以知道key_buffer_size设置是否合理。比例key_reads /key_read_requests应该尽可能的低，至少是1:100，1:1000更好（上述状态值可以使用SHOW STATUS LIKE ‘key_read%’获得）。key_buffer_size只对MyISAM表起作用。即使你不使用MyISAM表，但是内部的临时磁盘表是MyISAM表，也要使用该值。可以使用检查状态值created_tmp_disk_tables得知详情。
+ 对于1G内存的机器，如果不使用MyISAM表，推荐值是16M（8-64M）
+ key_buffer_size: 如果不使用MyISAM存储引擎，16MB足以，用来缓存一些系统表信息等。如果使用 MyISAM存储引擎，在内存允许的情况下，尽可能将所有索引放入内存，简单来说就是"越大越好"。
+
+
 
 SQL状态
  SQL状态的输出为SQL语句或者一些其他的字符串。
@@ -111,5 +117,10 @@ SQL状态
  告警阈值可以设置为流量峰值的70%--80%之间。或者设置为网卡接收包性能的70%--80%。
 
 
-
+提升性能的建议:
+1.如果opened_tables太大,应该把my.cnf中的table_cache变大
+2.如果Key_reads太大,则应该把my.cnf中key_buffer_size变大.可以用Key_reads/Key_read_requests计算出cache失败率
+3.如果Handler_read_rnd太大,则你写的SQL语句里很多查询都是要扫描整个表,而没有发挥键的作用
+4.如果Threads_created太大,就要增加my.cnf中thread_cache_size的值.可以用Threads_created/Connections计算cache命中率
+5.如果Created_tmp_disk_tables太大,就要增加my.cnf中tmp_table_size的值,用基于内存的临时表代替基于磁盘的
 
