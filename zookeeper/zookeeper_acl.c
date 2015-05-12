@@ -18,6 +18,15 @@ char *foo_get_cert_once(char* id) { return 0; }
 void watcher(zhandle_t *zzh, int type, int state, const char *path,
                  void *watcherCtx) 
 {
+    if (type == ZOO_SESSION_EVENT) {
+    if (state == ZOO_CONNECTED_STATE) {
+      printf("DBScale connected to zookeeper service successfully!\n");
+    } else if (state == ZOO_EXPIRED_SESSION_STATE) {
+      printf("DBScale zookeeper session expired!\n");
+    } else if (state == ZOO_AUTH_FAILED_STATE) {
+      printf("DBScale zookeeper session auth fail!\n");
+    }
+  }
 }
  
 
@@ -79,7 +88,15 @@ int main()
   /** this operation will fail with a ZNOAUTH error */
   int buflen= sizeof(buffer);
   struct Stat stat;
-rc = zoo_get(zh2, "/xyz", 0, buffer, &buflen, &stat);
+  rc = zoo_exists(zh2, "/xyz", 0, 0);
+if (rc == ZNOAUTH) {
+    fprintf(stderr, "Error %d for %d\n", rc, __LINE__);
+  }
+  else {
+    printf("zh2 exist %s\n", buffer);
+  }
+
+  rc = zoo_get(zh2, "/xyz", 0, buffer, &buflen, &stat);
   if (rc == ZNOAUTH) {
     fprintf(stderr, "Error %d for %d\n", rc, __LINE__);
   }
