@@ -60,7 +60,7 @@ int main()
 
 // struct Id id_tmp = {(char*)"digest", (char*)"user:tpUq/4Pn5A64fVZyQ0gOJ8ZWqkY="};
 
-  int rc = zoo_add_auth(zh,"digest", "user:password",strlen("user:password"),0,0);
+  int rc = zoo_add_auth(zh,"digest", "dbscale:dbscale",strlen("dbscale:dbscale"),0,0);
   if (rc == ZOK){
     printf("zoo add auth sucess\n");
   } else {
@@ -103,7 +103,13 @@ if (rc == ZNOAUTH) {
   else {
     printf("get data %s\n", buffer);
   }
-  rc = zoo_add_auth(zh2,"digest", "user:password",strlen("user:password"),0,0);
+   if (rc == ZOK){
+    printf("zoo create xyz  sucess\n");
+  } else {
+    printf("zoo create xyz  failed %s\n", zerror(rc));
+  }
+
+  rc = zoo_add_auth(zh2,"digest", "dbscale:dbscale",strlen("dbscale:dbscale"),0,0);
   if (rc == ZOK){
     printf("zoo add auth sucess\n");
   } else {
@@ -117,23 +123,14 @@ if (rc == ZNOAUTH) {
     printf("get data %s\n", buffer);
   }
 
-  rc = zoo_set(zh, "/xyz", "yangfei", strlen("yangfei"), -1);
+  rc = zoo_wget(zh2, "/xyz", watcher, NULL, buffer, &buflen, &stat);
   if (rc == ZNOAUTH) {
     fprintf(stderr, "Error %d for %d\n", rc, __LINE__);
   }
   else {
-    printf("set data %s\n", buffer);
+    printf("wget sucess %s\n", buffer);
   }
 
-  rc = zoo_get(zh, "/xyz", 0, buffer, &buflen, &stat);
-  if (rc == ZNOAUTH) {
-    fprintf(stderr, "Error %d for %d\n", rc, __LINE__);
-  }
-  else {
-    printf("get data %s\n", buffer);
-  }
- 
-   
   zookeeper_close(zh);
   return 0;
 }
